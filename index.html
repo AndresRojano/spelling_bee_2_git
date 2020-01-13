@@ -1,0 +1,263 @@
+<!DOCTYPE html> 
+<html>
+	<head>
+	
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"/>
+		<title> Spelling Bee </title>
+		<!-- grupo CSS -->
+		<link rel="stylesheet" href="css/jquery.mobile.icons-1.4.5.min.css"/>
+		<link rel="stylesheet" href="css/jquery.mobile.structure-1.4.5.min.css"/>
+		<link rel="stylesheet" href="css/theme_sb.min.css"/>
+		<link rel="stylesheet" href="css/font-awesome.min.css"/>
+		
+		<style>
+			.center{
+				margin: auto;
+				width: 50%;
+				/*border: 3px solid green;*/
+				padding: 10px;
+			}
+			
+			#log{
+			background-color: #B3970E;
+			border: 1px solid black;
+			font-size: 20px;
+			}
+			
+		</style>
+		<!--grupo JavaScript-->
+		<script src="js/jquery-1.11.2.min.js"></script>
+		<script src="js/jquery.mobile-1.4.5.min.js"></script>
+		<script src="phonegap.js" type="text/javascript"></script>
+		
+		<script type="text/javascript">
+			var socket;
+
+			function init() {
+				var host = "ws://127.0.0.1:9000/"; // SET THIS TO YOUR SERVER
+				try {
+					socket = new WebSocket(host);
+					log('WebSocket - estado: '+socket.readyState);
+					socket.onopen    = function(msg) { 
+						log("Bienvenido - estado: "+this.readyState); 
+					};
+					
+					socket.onmessage = function(msg) { 
+						log("Recibido: " + msg.data); 
+					};
+					
+					socket.onclose   = function(msg) { 
+						log("Desconectado - estado: "+this.readyState); 
+					};
+				}
+				
+				catch(ex){ 
+					log(ex); 
+				}
+				
+				$("msg").focus();
+			}
+
+			function send(){
+			
+				var txt,msg;
+				txt = $("msg");
+				msg = txt.value;
+				
+				if(!msg) { 
+					alert("El mensaje no puede estar vacio."); 
+					return; 
+				}
+				txt.value="";
+				txt.focus();
+				
+				try { 
+					socket.send(msg); 
+					log('Se envio: '+msg); 
+				}
+				
+				catch(ex) {
+					log(ex); 
+				}
+			}
+			
+			function quit(){
+				if (socket != null) {
+					log("Desconectado");
+					socket.close();
+					socket=null;
+				}
+			}
+
+			function reconnect() {
+				quit();
+				init();
+			}
+			
+			function clean() {
+				$("log").innerHTML="";
+				log('WebSocket - estado: '+socket.readyState);
+			}
+			
+			function start(){
+				var txt,msg;
+				txt = $("msg_start");
+				msg = txt.value;
+				
+				if(!msg) { 
+					alert("El mensaje no puede estar vacio."); 
+					return; 
+				}
+				txt.value="";
+				
+				try { 
+					socket.send(msg);
+					$("msg_start").value="a";
+					log('Se envio: '+msg);
+				}
+				
+				catch(ex) {
+					log(ex); 
+				}
+			}
+			
+			function next(){
+				var txt,msg;
+				txt = $("msg_next");
+				msg = txt.value;
+				
+				if(!msg) { 
+					alert("El mensaje no puede estar vacio."); 
+					return; 
+				}
+				txt.value="";
+				
+				try { 
+					socket.send(msg);
+					$("msg_next").value="b";
+					log('Se envio: '+msg);
+				}
+				
+				catch(ex) {
+					log(ex); 
+				}
+			}
+			
+			function stop(){
+				var txt,msg;
+				txt = $("msg_stop");
+				msg = txt.value;
+				
+				if(!msg) { 
+					alert("El mensaje no puede estar vacio."); 
+					return; 
+				}
+				txt.value="";
+				
+				try { 
+					socket.send(msg);
+					$("msg_stop").value="c";
+					log('Se envio: '+msg);
+				}
+				
+				catch(ex) {
+					log(ex); 
+				}
+			}
+			
+			// Utilities
+			function $(id){ return document.getElementById(id); }
+			function log(msg){ $("log").innerHTML+="<br>"+msg; }
+			function log(msg){ $("log").innerHTML+="<br>"+msg; }
+			function onkey(event){ if(event.keyCode==13){ send(); } }
+			
+		</script>
+	</head>
+	
+	<body onload="init()">
+		<!--////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////-->
+		<div data-role="page" id="principal" style="background-image: url(imagenes/honeycomb.png);">
+		
+			<div data-role="header" data-position="fixed" data-tap-toggle="false">
+				<h1> Spelling Bee - Menu </h1>
+				<img alt="estado" id="estado" src="imagenes/bee.png" width="60px" align="right">
+			</div>
+			
+			<div data-role="main" class="ui-content">
+				<div class="center">
+					<a type="button" class="ui-btn" id="botonC" href="#control_p" style="border-radius: 20px;"> Control </a>
+					<a type="button" class="ui-btn" id="botonS" href="#servidor_p" style="border-radius: 20px;"> Servidor </a>
+				</div>
+			</div>
+			<div data-role="footer" align="center" data-theme="a" data-position="fixed">
+				<h4> Spelling Bee - CBtis 016 - Prototipo </h4>
+				<img src="imagenes/bee.png" width="60px">
+			</div>
+			
+		</div>
+		<!--////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////-->
+		<div data-role="page" id="control_p" style="background-image: url(imagenes/honeycomb.png);">
+			
+			<div data-role="header" data-position="fixed" data-tap-toggle="false">
+				<h1> Spelling Bee - Control </h1>
+			</div>
+			
+			<div data-role="main" class="ui-content">
+
+				<div id="botones" class="center">
+				
+					<input style="opacity: 0;" id="msg_start" type="textbox" value="a"/>
+					<input style="opacity: 0;" id="msg_next" type="textbox" value="b"/>
+					<input style="opacity: 0;" id="msg_stop" type="textbox" value="c"/>
+					
+					
+					<input type="button" class="ui-btn" id="boton1" value="Start!" onclick="start()">
+					<input type="button" class="ui-btn" id="boton2" value="Next" onclick="next()">
+					<input type="button" class="ui-btn" id="boton3" value="Stop!" onclick="stop()">
+					
+					
+				</div>
+			</div>
+			
+			<div class="center">
+				<a type="button" class="ui-btn" id="botonC" href="#principal" style="border-radius: 20px;"> Menu </a>
+			</div>
+			
+			<div data-role="footer" align="center" data-theme="a" data-position="fixed">
+				<h4> Spelling Bee - CBtis 016 - Prototipo </h4>
+				<img src="imagenes/bee.png" width="60px">
+			</div>
+			
+		</div>
+		<!--////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////-->
+		<div data-role="page" id="servidor_p" style="background-image: url(imagenes/honeycomb.png);">
+			
+			<div data-role="header" data-position="fixed" data-tap-toggle="false">
+				<h1> Spelling Bee </h1>
+			</div>
+			
+			<div data-role="main" class="ui-content">
+				<div class="center">
+					<h3> Servidor </h3>
+					<div id="log"></div>
+					<input id="msg" type="textbox" style="width: 99%;" onkeypress="onkey(event)"/>
+					<button onclick="send()"> Enviar/Probar </button>
+					<button onclick="quit()"> Desconectar </button>
+					<button onclick="reconnect()"> Reconectar </button>
+					<button class="center"style="width: 50%;"onclick="clean()"> Limpiar </button>
+				</div>
+			</div>
+			
+			<div class="center">
+				<a type="button" class="ui-btn" id="botonC" href="#principal" style="border-radius: 20px;"> Menu </a>
+			</div>
+			<div data-role="footer" align="center" data-theme="a" data-position="fixed">
+				<h4> Spelling Bee - CBtis 016 - Prototipo </h4>
+				<img src="imagenes/bee.png" width="60px">
+			</div>
+			
+		</div>
+		<!--////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////-->
+	</body>
+</html>
